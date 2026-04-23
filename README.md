@@ -1,4 +1,4 @@
-# 🎧 Audio Spoofing Detection with Quantum & Classical Models
+# Audio Spoofing Detection with Quantum & Classical Models
 
 This repository provides a complete pipeline for **audio spoofing detection** using both **classical machine learning** and **quantum machine learning (QML)** approaches. It includes dataset preparation, embedding extraction using pretrained models, and evaluation using **SVM**, **MLP**, and **Quantum Support Vector Machines (QSVM)**.
 
