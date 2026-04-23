@@ -4,7 +4,7 @@ This repository provides a complete pipeline for **audio spoofing detection** us
 
 ---
 
-## 📌 Overview
+## Overview
 
 The **Quantum project** is designed to:
 
@@ -15,7 +15,7 @@ The **Quantum project** is designed to:
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 quantum/
@@ -38,9 +38,9 @@ quantum/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
-### 1️⃣ Data Preparation
+### Data Preparation
 
 Download and prepare datasets. Example for ASVspoof5:
 
@@ -50,7 +50,7 @@ python quantum/dataset/dataset_05.py
 
 ---
 
-### 2️⃣ Feature Extraction
+### Feature Extraction
 
 Convert audio files into `.npz` embeddings using a pretrained Wav2Vec2 model:
 
@@ -62,7 +62,7 @@ python quantum/embedding/embedding_o5.py \
 
 ---
 
-### 3️⃣ Model Evaluation
+###  Model Evaluation
 
 Run experiments comparing classical and quantum models:
 
@@ -82,9 +82,9 @@ This pipeline includes:
 
 ---
 
-## 📊 Key Features
+##  Key Features
 
-### ⚛️ Quantum Machine Learning
+### Quantum Machine Learning
 
 * Uses **Qiskit** to implement QSVM (QSVC)
 * Supports multiple feature maps:
@@ -93,32 +93,32 @@ This pipeline includes:
   * ZZ Feature Map
   * Pauli Feature Map
 
-### ⚖️ Fair Model Comparison
+###  Fair Model Comparison
 
 * All models (SVM, MLP, QSVM) use the **same PCA-reduced feature space**
 
-### 📈 Advanced Metrics
+### Advanced Metrics
 
 * Equal Error Rate (EER)
 * Expected Calibration Error (ECE)
 * AUC (Area Under Curve)
 * TPR @ specific FPR thresholds
 
-### 📉 Visualization
+### Visualization
 
 * ROC curves
 * DET curves
 * Calibration plots
 * Score distribution histograms
 
-### 🧪 Diagnostics
+###  Diagnostics
 
 * Kernel diagnostics for QSVM
 * Detects issues like **kernel collapse**
 
 ---
 
-## 🛠 Requirements
+## Requirements
 
 ### Quantum Libraries
 
@@ -165,7 +165,7 @@ pip install qiskit qiskit-machine-learning \
 
 ---
 
-## 🧪 Example Workflow
+##  Example Workflow
 
 ```bash
 # Step 1: Download dataset
@@ -186,7 +186,7 @@ python quantum/src/run.py \
 
 ---
 
-## 📌 Notes
+##  Notes
 
 * Use GPU for faster embedding extraction if available
 * QSVM can be computationally expensive for high dimensions
@@ -194,13 +194,13 @@ python quantum/src/run.py \
 
 ---
 
-## 📜 License
+##  License
 
   MIT 
 
 ---
 
-## 🤝 Contributions
+##  Contributions
 
 Contributions are welcome! You can:
 
@@ -212,7 +212,7 @@ Contributions are welcome! You can:
  
 ---
 
-## ⭐ Acknowledgements
+##  Acknowledgements
 
 * ASVspoof Challenges (2019, 2025)
 * Hugging Face datasets
