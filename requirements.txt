@@ -1,0 +1,17 @@
+ 
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+torch
+torchaudio
+torchvision
+numpy
+pandas
+matplotlib
+datasets
+transformers
+scikit-learn
+librosa
+qiskit
+qiskit-aer
+qiskit-machine-learning
+torchcodec
