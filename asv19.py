@@ -1,6 +1,16 @@
+import os
+import sys
+
+# Block PyTorch from trying to look for or initialize extra video/audio extensions
+os.environ["TORCHIO_USE_CPU"] = "1"
+os.environ["USE_TORCH"] = "1"
+
+# Completely trick the runtime environment into thinking torchcodec isn't installed
+sys.modules['torchcodec'] = None
+
 import argparse, time, torch, gc, numpy as np, pandas as pd, matplotlib.pyplot as plt
 import os, glob
-from datasets import load_dataset
+from datasets import load_dataset,  Audio
 from transformers import Wav2Vec2Processor, Wav2Vec2Model
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -34,10 +44,17 @@ def compute_metrics(y_true, y_score, y_pred):
 # ==========================================
 # 2. DATA ENGINE (HUGGING FACE DATASET)
 # ==========================================
+import io
+import soundfile as sf
+from datasets import Audio
+
 def extract_hf_data(n_each):
     print("Loading ASVspoof_2019_LA dataset from Hugging Face...")
-    # Load the train split
     ds = load_dataset("Bisher/ASVspoof_2019_LA", split="train")
+    
+    # CRITICAL: Tell Hugging Face NOT to automatically decode the audio column.
+    # This prevents it from looking for 'torchcodec' entirely.
+    ds = ds.cast_column("audio", Audio(decode=False))
     
     # Convert to pandas to easily perform balanced sampling by 'key'
     df = pd.DataFrame({
@@ -45,7 +62,6 @@ def extract_hf_data(n_each):
         'key': ds['key']
     })
     
-    # 0 = Bonafide, 1 = Spoof based on your configuration
     spoof_df = df[df["key"] == 1].sample(n_each, random_state=42)
     bonafide_df = df[df["key"] == 0].sample(n_each, random_state=42)
     selected_indices = pd.concat([spoof_df, bonafide_df])['index'].tolist()
@@ -56,6 +72,11 @@ def extract_hf_data(n_each):
     proc = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
     model = Wav2Vec2Model.from_pretrained("facebook/wav2vec2-base-960h")
     
+    # Move model to GPU if available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
+    model.eval()
+    
     audios = []
     labels = []
     
@@ -63,23 +84,32 @@ def extract_hf_data(n_each):
     for idx in selected_indices:
         example = ds[int(idx)]
         
-        # Hugging Face Audio feature returns a dict: {'array': np.array, 'sampling_rate': int}
-        speech = example["audio"]["array"]
-        sr = example["audio"]["sampling_rate"]
+        # Since decode=False, example["audio"] is a dict containing {'bytes': ...} or {'path': ...}
+        audio_dict = example["audio"]
+        
+        if audio_dict.get("bytes") is not None:
+            # Decode directly from bytes using soundfile
+            speech, sr = sf.read(io.BytesIO(audio_dict["bytes"]))
+        else:
+            # Fallback path if bytes are missing
+            import librosa
+            speech, sr = librosa.load(audio_dict["path"], sr=None)
         
         # Resample if dataset rate isn't natively 16kHz
         if sr != 16000:
             import librosa
             speech = librosa.resample(speech, orig_sr=sr, target_sr=16000)
-            sr = 16000
             
         inputs = proc(speech, sampling_rate=16000, return_tensors="pt", padding=True)
+        # Move inputs to the same device as model
+        inputs = {k: v.to(device) for k, v in inputs.items()}
         
         with torch.no_grad():
-            features = model(**inputs).last_hidden_state.mean(dim=1).squeeze().numpy()
+            outputs = model(**inputs)
+            # Extract features and move back to CPU for sklearn/numpy
+            features = outputs.last_hidden_state.mean(dim=1).squeeze().cpu().numpy()
             
         audios.append(features)
-        # Assign target label based on the 'key' rule provided
         labels.append(0 if example["key"] == 0 else 1)
         
     return np.array(audios), np.array(labels)
